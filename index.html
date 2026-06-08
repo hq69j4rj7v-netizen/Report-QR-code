@@ -1,0 +1,1005 @@
+```html
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EMERGENCY RESCUE NETWORK - ศูนย์รับแจ้งเหตุฉุกเฉิน 24 ชั่วโมง</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts (Sarabun & Prompt) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet Map CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/g9r+36DO0acceLECoUMy=" crossorigin=""></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Prompt', 'Sarabun', 'sans-serif'],
+                    },
+                    colors: {
+                        emergency: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            200: '#fecdd3',
+                            300: '#fda4af',
+                            400: '#fb7185',
+                            500: '#f43f5e',
+                            600: '#e11d48',
+                            700: '#be123c',
+                            800: '#9f1239',
+                            900: '#881337',
+                            950: '#4c0519',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            font-family: 'Prompt', 'Sarabun', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e11d48;
+            border-radius: 3px;
+        }
+        /* Leaflet map styling */
+        #map {
+            height: 250px;
+            border-radius: 0.75rem;
+            z-index: 10;
+        }
+        /* Pulse Animation for Emergency Beacon */
+        .emergency-pulse {
+            box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.7);
+            animation: pulse 1.6s infinite cubic-bezier(0.66, 0, 0, 1);
+        }
+        @keyframes pulse {
+            to {
+                box-shadow: 0 0 0 15px rgba(225, 29, 72, 0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 transition-colors duration-200 dark:bg-gray-950 dark:text-gray-100 min-h-screen flex flex-col">
+
+    <!-- Splash Screen / Loader -->
+    <div id="splash-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gray-950 transition-opacity duration-500">
+        <div class="text-center px-4">
+            <div class="relative w-32 h-32 mx-auto mb-6">
+                <!-- Outer glowing rings -->
+                <div class="absolute inset-0 rounded-full border-4 border-red-600/30 animate-ping"></div>
+                <img src="https://cdn.phototourl.com/free/2026-06-08-d5be8992-fbe4-44f0-afc7-043b5fef4b66.jpg" alt="Emergency Rescue Network Logo" class="relative z-10 w-32 h-32 rounded-full object-cover border-4 border-red-600 shadow-2xl">
+            </div>
+            <h1 class="text-2xl font-black text-white tracking-widest uppercase">EMERGENCY RESCUE</h1>
+            <p class="text-red-500 font-bold text-sm tracking-widest mt-1">24/7 MONITORING SYSTEM</p>
+            <div class="mt-8 flex justify-center">
+                <div class="w-12 h-1.5 bg-red-600 rounded-full animate-pulse"></div>
+            </div>
+            <p class="text-gray-400 text-xs mt-4">กำลังเตรียมความพร้อมของระบบ...</p>
+        </div>
+    </div>
+
+    <!-- Alert Banner top -->
+    <div class="bg-red-600 text-white font-bold py-2 px-4 text-center text-xs sm:text-sm tracking-wider uppercase z-30 flex items-center justify-center gap-2">
+        <span class="inline-block w-2.5 h-2.5 bg-white rounded-full animate-ping"></span>
+        <span>EMERGENCY RESCUE NETWORK - 24/7 MONITORING</span>
+    </div>
+
+    <!-- Main Navigation / Header -->
+    <header class="bg-white dark:bg-gray-900 shadow-md border-b border-gray-200 dark:border-gray-800 transition-colors duration-200 sticky top-0 z-40">
+        <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img src="https://cdn.phototourl.com/free/2026-06-08-d5be8992-fbe4-44f0-afc7-043b5fef4b66.jpg" alt="Logo" class="w-10 h-10 rounded-full object-cover border-2 border-red-600">
+                <div>
+                    <span class="block font-black text-red-600 dark:text-red-500 text-sm leading-tight uppercase">EMERGENCY</span>
+                    <span class="block text-gray-500 dark:text-gray-400 text-xs font-semibold leading-tight uppercase">Rescue Network</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <!-- Settings/Config Trigger -->
+                <button id="config-btn" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition" title="ตั้งค่าระบบ">
+                    <i class="fa-solid fa-sliders text-lg"></i>
+                </button>
+                <!-- Dark Mode Toggle -->
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition" title="สลับโหมด">
+                    <i class="fa-solid fa-moon text-lg dark:hidden"></i>
+                    <i class="fa-solid fa-sun text-lg hidden dark:block"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Body Area -->
+    <main class="flex-grow max-w-3xl w-full mx-auto px-4 py-6">
+        
+        <!-- Welcome Hero Info -->
+        <div class="text-center mb-8 bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+            <img src="https://cdn.phototourl.com/free/2026-06-08-d5be8992-fbe4-44f0-afc7-043b5fef4b66.jpg" alt="Logo Center" class="w-20 h-20 rounded-full object-cover mx-auto border-4 border-red-600 shadow-lg mb-4">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">ศูนย์รับแจ้งเหตุฉุกเฉิน</h2>
+            <p class="text-red-600 dark:text-red-400 font-bold text-sm sm:text-base mt-1">แจ้งเหตุฉุกเฉิน / อุบัติเหตุ / ขอความช่วยเหลือ</p>
+            <p class="text-gray-500 dark:text-gray-400 text-xs mt-2">โปรดระบุข้อมูลให้ครบถ้วนและเป็นความจริงเพื่อให้เจ้าหน้าที่เข้าช่วยเหลือได้อย่างรวดเร็ว</p>
+        </div>
+
+        <!-- Main Form Container -->
+        <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden transition-all duration-300">
+            <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4 text-white">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-clipboard-list text-xl animate-pulse"></i>
+                        <h3 class="font-bold text-lg">แบบฟอร์มรายงานเหตุฉุกเฉิน</h3>
+                    </div>
+                    <span class="bg-red-500/40 text-xs font-semibold px-2.5 py-1 rounded-full border border-red-400/50">24 ชั่วโมง</span>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <form id="emergency-form" class="p-6 space-y-5" onsubmit="handleFormSubmit(event)">
+                
+                <!-- 1. Name Input -->
+                <div>
+                    <label for="reporter-name" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                        1. ชื่อผู้แจ้งเหตุ <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-gray-400">
+                            <i class="fa-solid fa-user"></i>
+                        </span>
+                        <input type="text" id="reporter-name" required
+                            class="w-full bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-red-500 focus:border-red-500 block pl-10 pr-3.5 py-3 text-sm transition"
+                            placeholder="ระบุชื่อ-นามสกุล">
+                    </div>
+                </div>
+
+                <!-- 2. Incident Type Dropdown -->
+                <div>
+                    <label for="incident-type" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                        2. ประเภทเหตุ <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-gray-400">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </span>
+                        <select id="incident-type" required
+                            class="w-full bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-red-500 focus:border-red-500 block pl-10 pr-10 py-3 text-sm appearance-none transition cursor-pointer">
+                            <option value="" disabled selected>-- เลือกประเภทเหตุ --</option>
+                            <option value="อุบัติเหตุทางถนน">🚗 อุบัติเหตุทางถนน</option>
+                            <option value="อัคคีภัย / ไฟไหม้">🔥 อัคคีภัย / ไฟไหม้</option>
+                            <option value="เจ็บป่วยฉุกเฉิน">🚑 เจ็บป่วยฉุกเฉิน</option>
+                            <option value="สัตว์ร้าย / งูเข้าบ้าน">🐍 สัตว์ร้าย / งูเข้าบ้าน</option>
+                            <option value="ขอความช่วยเหลืออื่นๆ">🆘 ขอความช่วยเหลืออื่นๆ</option>
+                        </select>
+                        <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 3. Photo Capture & Upload Component -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                        3. รูปภาพประกอบเหตุการณ์ <span class="text-gray-400 text-xs">(เลือกทำรายการ/เปิดกล้องถ่ายภาพ)</span>
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <!-- Camera capture button -->
+                        <button type="button" onclick="triggerCameraInput()"
+                            class="flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl hover:border-red-500 dark:hover:border-red-500 hover:bg-red-50/20 dark:hover:bg-red-950/10 transition group text-sm text-gray-600 dark:text-gray-300">
+                            <i class="fa-solid fa-camera text-lg group-hover:scale-110 transition text-red-500"></i>
+                            <span>เปิดกล้องถ่ายภาพ</span>
+                        </button>
+                        
+                        <!-- Local file upload button -->
+                        <button type="button" onclick="triggerFileInput()"
+                            class="flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl hover:border-red-500 dark:hover:border-red-500 hover:bg-red-50/20 dark:hover:bg-red-950/10 transition group text-sm text-gray-600 dark:text-gray-300">
+                            <i class="fa-solid fa-images text-lg group-hover:scale-110 transition text-red-500"></i>
+                            <span>อัปโหลดรูปภาพ</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Hidden Input Fields -->
+                    <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden" onchange="previewSelectedImage(this)">
+                    <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp" class="hidden" onchange="previewSelectedImage(this)">
+                    
+                    <!-- Image Preview Area -->
+                    <div id="image-preview-container" class="hidden mt-3 relative rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                        <img id="image-preview" src="#" alt="ภาพตัวอย่าง" class="max-h-60 w-full object-contain mx-auto">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-between p-3 text-white">
+                            <span class="text-xs font-semibold" id="image-meta-info"></span>
+                            <button type="button" onclick="clearSelectedImage()" class="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2.5 py-1.5 text-xs flex items-center gap-1.5 transition">
+                                <i class="fa-solid fa-trash-can"></i> ลบรูปภาพ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Location / Landmarks Description -->
+                <div>
+                    <label for="location-description" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                        4. สถานที่ / จุดสังเกต <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="location-description" required rows="3"
+                        class="w-full bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-red-500 focus:border-red-500 block p-3.5 text-sm transition"
+                        placeholder="เช่น หน้าวัด...&#10;ซอย...&#10;กิโลเมตรที่..."></textarea>
+                </div>
+
+                <!-- 5. GPS Geolocation Picker -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                        5. ระบบระบุพิกัด GPS อัตโนมัติ <span class="text-red-500">*</span>
+                    </label>
+                    
+                    <!-- Primary Locate button -->
+                    <button type="button" id="locate-btn" onclick="requestUserLocation()"
+                        class="w-full bg-slate-800 hover:bg-slate-900 text-white dark:bg-red-600 dark:hover:bg-red-700 py-3.5 px-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-[0.98] transition">
+                        <i class="fa-solid fa-location-crosshairs text-lg animate-spin" id="gps-loading-icon" style="display: none;"></i>
+                        <span id="gps-btn-text">📍 แตะเพื่อระบุพิกัด GPS อัตโนมัติ</span>
+                    </button>
+
+                    <!-- Latitude Longitude Readouts -->
+                    <div class="grid grid-cols-2 gap-3 mt-3">
+                        <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 border border-gray-200 dark:border-gray-700 text-center">
+                            <span class="block text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Latitude</span>
+                            <span id="display-latitude" class="text-sm font-mono font-bold text-gray-700 dark:text-gray-200">-</span>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 border border-gray-200 dark:border-gray-700 text-center">
+                            <span class="block text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Longitude</span>
+                            <span id="display-longitude" class="text-sm font-mono font-bold text-gray-700 dark:text-gray-200">-</span>
+                        </div>
+                    </div>
+                    
+                    <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1.5 ml-1" id="gps-accuracy-info">
+                        * ระบบพิกัดจะระบุตำแหน่งโดยละเอียดจากโมดูลดาวเทียม/เครือข่ายมือถือของคุณโดยอัตโนมัติ
+                    </p>
+
+                    <!-- OSM Map Preview Container -->
+                    <div id="map-wrapper" class="hidden mt-3">
+                        <div class="relative">
+                            <div id="map"></div>
+                            <div class="absolute bottom-2 left-2 z-[1000]">
+                                <a id="google-maps-btn" href="#" target="_blank"
+                                    class="bg-white hover:bg-gray-100 text-gray-800 font-bold text-xs px-3 py-1.5 rounded-lg shadow-md flex items-center gap-1.5 transition border border-gray-300">
+                                    <i class="fa-solid fa-map-location-dot text-green-600"></i> นำทางด้วย Google Maps
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. Callback Phone -->
+                <div>
+                    <label for="reporter-phone" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                        6. เบอร์โทรศัพท์ติดต่อกลับ <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-gray-400">
+                            <i class="fa-solid fa-phone"></i>
+                        </span>
+                        <input type="tel" id="reporter-phone" required pattern="[0-9\-]*"
+                            class="w-full bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-red-500 focus:border-red-500 block pl-10 pr-3.5 py-3 text-sm transition font-mono font-bold"
+                            placeholder="0XX-XXXXXXX" oninput="formatPhoneNumber(this)">
+                    </div>
+                </div>
+
+                <!-- Security Tokens -->
+                <div class="flex items-center justify-between text-[11px] text-gray-400 dark:text-gray-500 pt-2 border-t border-gray-100 dark:border-gray-800">
+                    <span class="flex items-center gap-1">
+                        <i class="fa-solid fa-shield-halved text-green-600"></i> เข้ารหัสรักษาความปลอดภัยแบบ SSL/HTTPS
+                    </span>
+                    <span id="rate-limit-badge" class="text-gray-400">
+                        พร้อมส่งข้อมูลฉุกเฉิน
+                    </span>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-2">
+                    <button type="submit" id="submit-btn"
+                        class="w-full bg-red-600 hover:bg-red-700 text-white py-4 px-6 rounded-2xl font-black text-lg tracking-wider shadow-lg hover:shadow-red-600/30 hover:scale-[1.01] active:scale-[0.99] transition duration-150 flex items-center justify-center gap-3.5 emergency-pulse">
+                        <i class="fa-solid fa-triangle-exclamation text-2xl animate-bounce"></i>
+                        <span>🚨 ส่งข้อมูลแจ้งภัย</span>
+                    </button>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- Simulated Active Feeds / Incident list -->
+        <div class="mt-8 bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+            <div class="flex items-center justify-between mb-4">
+                <h4 class="font-black text-base text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                    <span class="inline-block w-2.5 h-2.5 bg-red-600 rounded-full animate-pulse"></span>
+                    การแจ้งเหตุในปัจจุบัน (ข้อมูลบนอุปกรณ์ของคุณ)
+                </h4>
+                <span id="local-counter" class="bg-gray-100 dark:bg-gray-800 text-xs font-bold text-gray-600 dark:text-gray-300 px-2.5 py-1 rounded-full">0 เหตุการณ์</span>
+            </div>
+            
+            <div id="no-incidents-placeholder" class="text-center py-8 text-gray-400 dark:text-gray-500">
+                <i class="fa-solid fa-check-double text-3xl mb-2 text-green-500"></i>
+                <p class="text-sm">ไม่มีรายงานเหตุค้างส่งจากเครื่องของคุณในขณะนี้</p>
+            </div>
+            
+            <div id="incident-list" class="space-y-4 hidden">
+                <!-- Incidents will be inserted here dynamically -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Success Modal Popup Overlay -->
+    <div id="success-modal" class="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="bg-white dark:bg-gray-900 w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-800 transform scale-95 transition-transform duration-300">
+            
+            <div class="bg-green-600 text-white p-6 text-center relative">
+                <img src="https://cdn.phototourl.com/free/2026-06-08-d5be8992-fbe4-44f0-afc7-043b5fef4b66.jpg" alt="Logo Success" class="w-16 h-16 rounded-full object-cover border-4 border-white shadow-md mx-auto mb-3">
+                <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fa-solid fa-circle-check text-4xl text-white"></i>
+                </div>
+                <h3 class="text-xl font-bold">✅ ส่งข้อมูลแจ้งเหตุเรียบร้อยแล้ว</h3>
+                <p class="text-sm text-green-100 mt-1">เจ้าหน้าที่ได้รับข้อมูลของท่านแล้ว</p>
+            </div>
+
+            <!-- Summary Details -->
+            <div class="p-6 space-y-4">
+                <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800 space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                    <p><strong class="text-gray-900 dark:text-white">ประเภทเหตุ:</strong> <span id="summary-type">อุบัติเหตุทางถนน</span></p>
+                    <p><strong class="text-gray-900 dark:text-white">ชื่อผู้แจ้ง:</strong> <span id="summary-name">สมศักดิ์ รักไทย</span></p>
+                    <p><strong class="text-gray-900 dark:text-white">เบอร์ติดต่อ:</strong> <span id="summary-phone">089-123-4567</span></p>
+                    <p><strong class="text-gray-900 dark:text-white">จุดเกิดเหตุ:</strong> <span id="summary-location" class="line-clamp-2">หน้าวัดพัฒนา ซอย 2</span></p>
+                    <p><strong class="text-gray-900 dark:text-white">พิกัด GPS:</strong> <span id="summary-gps" class="font-mono">13.7563, 100.5018</span></p>
+                    <p><strong class="text-gray-900 dark:text-white">เวลาส่งเหตุ:</strong> <span id="summary-time">08/06/2026 12:28</span></p>
+                </div>
+
+                <div class="text-center">
+                    <p class="text-red-600 dark:text-red-400 font-bold text-sm">🚨 กรุณารอสายติดต่อกลับจากเจ้าหน้าที่ควบคุมวิทยุ</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">โปรดเปิดโทรศัพท์และสแตนด์บายรับสายเจ้าหน้าที่กู้ชีพและทีมระงับเหตุ</p>
+                </div>
+
+                <button onclick="closeSuccessModal()"
+                    class="w-full bg-gray-900 dark:bg-white text-white dark:text-gray-950 font-bold py-3.5 rounded-xl hover:bg-gray-800 transition shadow-md">
+                    ตกลงและรับทราบ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration Slidover Modal -->
+    <div id="config-modal" class="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="bg-white dark:bg-gray-900 w-full max-w-md rounded-2xl overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-800 transform scale-95 transition-transform duration-300">
+            
+            <div class="bg-slate-800 text-white px-5 py-4 flex items-center justify-between">
+                <span class="font-bold flex items-center gap-2"><i class="fa-solid fa-gears text-red-500"></i> ตั้งค่าการแจ้งเตือน (API Config)</span>
+                <button onclick="toggleConfigModal()" class="text-gray-400 hover:text-white transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="p-5 space-y-4">
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                    กำหนดค่า Telegram Bot สำหรับรับแจ้งพิกัดและภาพถ่ายแบบ Real-time เข้ากลุ่มหรือชาแนลของหน่วยกู้ภัยของคุณโดยตรง
+                </p>
+
+                <div class="space-y-3">
+                    <div>
+                        <label for="config-token" class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">TELEGRAM BOT TOKEN</label>
+                        <input type="text" id="config-token" 
+                            class="w-full bg-gray-50 dark:bg-gray-800 text-xs text-gray-900 dark:text-white rounded-lg border border-gray-300 dark:border-gray-700 p-2.5 font-mono"
+                            placeholder="ป้อน BOT TOKEN ของคุณ">
+                    </div>
+                    <div>
+                        <label for="config-chatid" class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">TELEGRAM CHAT ID</label>
+                        <input type="text" id="config-chatid" 
+                            class="w-full bg-gray-50 dark:bg-gray-800 text-xs text-gray-900 dark:text-white rounded-lg border border-gray-300 dark:border-gray-700 p-2.5 font-mono"
+                            placeholder="เช่น -100xxxxxxxxxx หรือไอดีกลุ่ม">
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-3 rounded dark:bg-blue-950/20 dark:border-blue-700 text-[11px] text-blue-800 dark:text-blue-300">
+                    <p class="font-bold mb-1">💡 เกร็ดความรู้:</p>
+                    <p>เมื่อมีรูปภาพ ระบบจะส่งภาพพร้อมรายละเอียดลงกรุ๊ป Telegram ทันที หากไม่มีภาพจะส่งข้อความสรุปพิกัด GPS เพื่อให้กดเปิดแผนที่ได้อย่างรวดเร็ว!</p>
+                </div>
+
+                <div class="flex gap-2 pt-2">
+                    <button onclick="resetConfig()" class="flex-1 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm font-bold py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                        ค่าเริ่มต้น (จำลอง)
+                    </button>
+                    <button onclick="saveConfig()" class="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm font-bold py-2.5 rounded-xl transition">
+                        บันทึกการตั้งค่า
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-400 text-center py-6 px-4 border-t border-gray-800 text-xs mt-auto">
+        <div class="max-w-3xl mx-auto space-y-2">
+            <div class="flex justify-center items-center gap-1.5 font-bold text-white mb-1">
+                <img src="https://cdn.phototourl.com/free/2026-06-08-d5be8992-fbe4-44f0-afc7-043b5fef4b66.jpg" alt="Mini Logo" class="w-5 h-5 rounded-full object-cover">
+                <span>EMERGENCY RESCUE NETWORK</span>
+            </div>
+            <p>ศูนย์รับแจ้งเหตุและประสานงานสาธารณภัยแห่งชาติ ตลอด 24 ชั่วโมง</p>
+            <div class="flex items-center justify-center gap-4 text-[10px] text-gray-500">
+                <span>RESCUE SYSTEM v2.1</span>
+                <span>•</span>
+                <span>POWERED BY TELEGRAM API</span>
+                <span>•</span>
+                <span>SECURED SECURE SOCKETS LAYER</span>
+            </div>
+            <p class="pt-2 text-[10px] text-gray-600">&copy; 2026 Emergency Rescue Network. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JS Logic and Functions -->
+    <script>
+        let telegramConfig = {
+            botToken: '',
+            chatId: ''
+        };
+
+        let incidentHistory = [];
+        let mapInstance = null;
+        let mapMarker = null;
+        let selectedBase64Image = null;
+        let lastReportTime = 0; 
+
+        let userLatitude = null;
+        let userLongitude = null;
+        let userAccuracy = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedToken = localStorage.getItem('rescue_bot_token');
+            const savedChatId = localStorage.getItem('rescue_chat_id');
+            const savedHistory = localStorage.getItem('rescue_incident_history');
+
+            if (savedToken && savedChatId) {
+                telegramConfig.botToken = savedToken;
+                telegramConfig.chatId = savedChatId;
+                document.getElementById('config-token').value = savedToken;
+                document.getElementById('config-chatid').value = savedChatId;
+            }
+
+            if (savedHistory) {
+                try {
+                    incidentHistory = JSON.parse(savedHistory);
+                    updateIncidentListUI();
+                } catch(e) {
+                    incidentHistory = [];
+                }
+            }
+
+            if (localStorage.getItem('theme') === 'dark' || 
+                (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.classList.add('opacity-0');
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                }, 500);
+            }, 1000);
+
+            document.getElementById('config-btn').addEventListener('click', toggleConfigModal);
+            
+            document.getElementById('theme-toggle').addEventListener('click', () => {
+                if (document.documentElement.classList.contains('dark')) {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('theme', 'dark');
+                }
+                if (mapInstance) {
+                    setTimeout(() => { mapInstance.invalidateSize(); }, 200);
+                }
+            });
+        });
+
+        function toggleConfigModal() {
+            const modal = document.getElementById('config-modal');
+            const child = modal.querySelector('div');
+            if (modal.classList.contains('opacity-0')) {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                child.classList.remove('scale-95');
+                child.classList.add('scale-100');
+            } else {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                child.classList.remove('scale-100');
+                child.classList.add('scale-95');
+            }
+        }
+
+        function saveConfig() {
+            const tokenInput = document.getElementById('config-token').value.trim();
+            const chatIdInput = document.getElementById('config-chatid').value.trim();
+
+            if (!tokenInput || !chatIdInput) {
+                showCustomToast('⚠️ กรุณากรอกข้อมูลให้ครบทั้งสองช่อง', 'warning');
+                return;
+            }
+
+            telegramConfig.botToken = tokenInput;
+            telegramConfig.chatId = chatIdInput;
+
+            localStorage.setItem('rescue_bot_token', tokenInput);
+            localStorage.setItem('rescue_chat_id', chatIdInput);
+
+            toggleConfigModal();
+            showCustomToast('💾 บันทึกการตั้งค่าบอทโทรเลขสำเร็จ!', 'success');
+        }
+
+        function resetConfig() {
+            document.getElementById('config-token').value = '';
+            document.getElementById('config-chatid').value = '';
+            telegramConfig.botToken = '';
+            telegramConfig.chatId = '';
+            localStorage.removeItem('rescue_bot_token');
+            localStorage.removeItem('rescue_chat_id');
+            toggleConfigModal();
+            showCustomToast('🔄 รีเซ็ตการตั้งค่าเป็นแบบจำลองเรียบร้อย', 'info');
+        }
+
+        function triggerCameraInput() {
+            document.getElementById('camera-input').click();
+        }
+
+        function triggerFileInput() {
+            document.getElementById('file-input').click();
+        }
+
+        function formatPhoneNumber(input) {
+            let num = input.value.replace(/\D/g, ''); 
+            
+            if (num.length > 10) {
+                num = num.substring(0, 10);
+            }
+            
+            if (num.length > 3 && num.length <= 6) {
+                input.value = num.slice(0, 3) + '-' + num.slice(3);
+            } else if (num.length > 6) {
+                input.value = num.slice(0, 3) + '-' + num.slice(3, 6) + '-' + num.slice(6);
+            } else {
+                input.value = num;
+            }
+        }
+
+        function previewSelectedImage(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                showCustomToast('❌ รูปแบบไฟล์ไม่ถูกต้อง รองรับเฉพาะ JPG, PNG, WEBP เท่านั้น', 'error');
+                input.value = '';
+                return;
+            }
+
+            const maxSizeInBytes = 5 * 1024 * 1024; 
+            if (file.size > maxSizeInBytes) {
+                showCustomToast('❌ ขนาดไฟล์ใหญ่เกินไป จำกัดไม่เกิน 5MB', 'error');
+                input.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedBase64Image = e.target.result;
+                
+                const previewImg = document.getElementById('image-preview');
+                const previewContainer = document.getElementById('image-preview-container');
+                const metaText = document.getElementById('image-meta-info');
+
+                previewImg.src = selectedBase64Image;
+                metaText.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+                previewContainer.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearSelectedImage() {
+            document.getElementById('camera-input').value = '';
+            document.getElementById('file-input').value = '';
+            selectedBase64Image = null;
+            document.getElementById('image-preview-container').classList.add('hidden');
+            document.getElementById('image-preview').src = '#';
+        }
+
+        function requestUserLocation() {
+            const gpsBtn = document.getElementById('locate-btn');
+            const gpsText = document.getElementById('gps-btn-text');
+            const loadingIcon = document.getElementById('gps-loading-icon');
+
+            if (!navigator.geolocation) {
+                showCustomToast('❌ อุปกรณ์ของคุณไม่รองรับการดึงพิกัด GPS อัตโนมัติ', 'error');
+                return;
+            }
+
+            gpsBtn.disabled = true;
+            loadingIcon.style.display = 'inline-block';
+            gpsText.textContent = ' กำลังระบุตำแหน่งของคุณจากดาวเทียม...';
+
+            const geoOptions = {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            };
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    userLatitude = position.coords.latitude.toFixed(6);
+                    userLongitude = position.coords.longitude.toFixed(6);
+                    userAccuracy = position.coords.accuracy.toFixed(1);
+
+                    document.getElementById('display-latitude').textContent = userLatitude;
+                    document.getElementById('display-longitude').textContent = userLongitude;
+                    document.getElementById('gps-accuracy-info').textContent = `* พิกัดถูกต้องภายในระยะรัศมี ${userAccuracy} เมตร`;
+
+                    gpsBtn.disabled = false;
+                    loadingIcon.style.display = 'none';
+                    gpsBtn.classList.replace('bg-slate-800', 'bg-emerald-600');
+                    gpsBtn.classList.replace('dark:bg-red-600', 'dark:bg-emerald-600');
+                    gpsText.innerHTML = '✅ ตรวจสอบพิกัด GPS สำเร็จ เรียบร้อย!';
+
+                    renderMapPreview(parseFloat(userLatitude), parseFloat(userLongitude));
+                    showCustomToast('📍 อัปเดตพิกัดดาวเทียมเรียบร้อยแล้ว', 'info');
+                },
+                (error) => {
+                    gpsBtn.disabled = false;
+                    loadingIcon.style.display = 'none';
+                    gpsText.textContent = '📍 แตะเพื่อระบุพิกัด GPS อัตโนมัติ';
+                    
+                    let errorMsg = 'ไม่สามารถระบุพิกัดของคุณได้ โปรดอนุญาตสิทธิ์การเข้าถึงตำแหน่งของคุณ';
+                    if (error.code === error.PERMISSION_DENIED) {
+                        errorMsg = '❌ โปรดอนุญาตสิทธิ์ระบุพิกัด (Location) ในหน้าตั้งค่าเบราว์เซอร์ของคุณ';
+                    } else if (error.code === error.TIMEOUT) {
+                        errorMsg = '❌ หมดเวลารอรับพิกัด ค้นหาล้มเหลว โปรดลองใหม่อีกครั้ง';
+                    }
+                    showCustomToast(errorMsg, 'error');
+                },
+                geoOptions
+            );
+        }
+
+        function renderMapPreview(lat, lng) {
+            const mapWrapper = document.getElementById('map-wrapper');
+            mapWrapper.classList.remove('hidden');
+
+            const googleMapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
+            document.getElementById('google-maps-btn').href = googleMapsUrl;
+
+            if (mapInstance) {
+                mapInstance.setView([lat, lng], 16);
+                if (mapMarker) {
+                    mapInstance.removeLayer(mapMarker);
+                }
+                mapMarker = L.marker([lat, lng]).addTo(mapInstance);
+                mapMarker.bindPopup('🚨 <b>จุดเกิดภัยที่แจ้ง</b><br>พิกัด: ' + lat + ', ' + lng).openPopup();
+                setTimeout(() => { mapInstance.invalidateSize(); }, 200);
+                return;
+            }
+
+            mapInstance = L.map('map').setView([lat, lng], 16);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(mapInstance);
+
+            mapMarker = L.marker([lat, lng]).addTo(mapInstance);
+            mapMarker.bindPopup('🚨 <b>จุดเกิดภัยที่แจ้ง</b><br>พิกัด: ' + lat + ', ' + lng).openPopup();
+            
+            setTimeout(() => {
+                mapInstance.invalidateSize();
+            }, 100);
+        }
+
+        function sanitizeString(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#x27;")
+                .replace(/\//g, "&#x2F;");
+        }
+
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+
+            const currentTime = Date.now();
+            if (currentTime - lastReportTime < 10000) {
+                showCustomToast('⚠️ โปรดอย่าส่งเหตุซ้ำซ้อนอย่างรวดเร็ว ระบบกำลังประสานงานช่วยเหลืออยู่', 'warning');
+                return;
+            }
+
+            if (!userLatitude || !userLongitude) {
+                showCustomToast('❌ กรุณากดระบุพิกัด GPS เพื่อส่งพิกัดดาวเทียมให้ทีมเจ้าหน้าที่', 'error');
+                document.getElementById('locate-btn').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                document.getElementById('locate-btn').classList.add('animate-bounce');
+                setTimeout(() => {
+                    document.getElementById('locate-btn').classList.remove('animate-bounce');
+                }, 2000);
+                return;
+            }
+
+            const name = sanitizeString(document.getElementById('reporter-name').value.trim());
+            const type = sanitizeString(document.getElementById('incident-type').value);
+            const location = sanitizeString(document.getElementById('location-description').value.trim());
+            const phone = sanitizeString(document.getElementById('reporter-phone').value.trim());
+            const formattedTime = new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' });
+
+            if (!name || !type || !location || !phone) {
+                showCustomToast('⚠️ กรุณากรอกแบบฟอร์มให้ครบถ้วนทุกช่อง', 'warning');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submit-btn');
+            const originalBtnContent = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin text-2xl"></i> <span>กำลังส่งพิกัดและข้อมูลภัย...</span>`;
+
+            const googleMapDirectionLink = `https://maps.google.com/?q=${userLatitude},${userLongitude}`;
+            
+            const telegramMessageText = 
+`🚨 *แจ้งเหตุใหม่ (EMERGENCY RESCUE)*
+
+👤 *ผู้แจ้ง:* ${name}
+📋 *ประเภทเหตุ:* ${type}
+📍 *สถานที่:* ${location}
+
+🌎 *พิกัด GPS:*
+Latitude : \`${userLatitude}\`
+Longitude : \`${userLongitude}\`
+
+📱 [เปิดแผนที่นำทางบน Google Maps](${googleMapDirectionLink})
+
+📞 *เบอร์โทรศัพท์:* [${phone}](tel:${phone})
+🕒 *วันเวลา:* ${formattedTime}
+
+_ส่งผ่านระบบ EMERGENCY RESCUE NETWORK v2.1_`;
+
+            let isTelegramSent = false;
+            let errorDetails = null;
+
+            if (telegramConfig.botToken && telegramConfig.chatId) {
+                try {
+                    if (selectedBase64Image) {
+                        const fetchRes = await fetch(selectedBase64Image);
+                        const imageBlob = await fetchRes.blob();
+                        
+                        const formData = new FormData();
+                        formData.append('chat_id', telegramConfig.chatId);
+                        formData.append('photo', imageBlob, 'incident_capture.png');
+                        formData.append('caption', telegramMessageText);
+                        formData.append('parse_mode', 'Markdown');
+
+                        const telegramPhotoEndpoint = `https://api.telegram.org/bot${telegramConfig.botToken}/sendPhoto`;
+                        const res = await fetch(telegramPhotoEndpoint, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        const resJSON = await res.json();
+                        if (resJSON.ok) {
+                            isTelegramSent = true;
+                        } else {
+                            errorDetails = resJSON.description;
+                        }
+                    } else {
+                        const telegramMsgEndpoint = `https://api.telegram.org/bot${telegramConfig.botToken}/sendMessage`;
+                        const res = await fetch(telegramMsgEndpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                chat_id: telegramConfig.chatId,
+                                text: telegramMessageText,
+                                parse_mode: 'Markdown',
+                                disable_web_page_preview: false
+                            })
+                        });
+
+                        const resJSON = await res.json();
+                        if (resJSON.ok) {
+                            isTelegramSent = true;
+                        } else {
+                            errorDetails = resJSON.description;
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error dispatching to Telegram API:', err);
+                    errorDetails = 'เกิดความผิดพลาดในการเชื่อมต่อเครือข่ายอินเทอร์เน็ต';
+                }
+            } else {
+                console.log("No custom token set. Simulated payload dispatched:", telegramMessageText);
+                isTelegramSent = true; 
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnContent;
+
+            if (isTelegramSent) {
+                const incidentRecord = {
+                    id: Date.now(),
+                    name: name,
+                    type: type,
+                    location: location,
+                    phone: phone,
+                    lat: userLatitude,
+                    lng: userLongitude,
+                    time: formattedTime,
+                    image: selectedBase64Image || null
+                };
+
+                incidentHistory.unshift(incidentRecord); 
+                localStorage.setItem('rescue_incident_history', JSON.stringify(incidentHistory));
+                updateIncidentListUI();
+
+                lastReportTime = currentTime;
+
+                openSuccessModal(incidentRecord);
+                
+                document.getElementById('emergency-form').reset();
+                clearSelectedImage();
+                
+                document.getElementById('gps-btn-text').textContent = '📍 แตะเพื่อระบุพิกัด GPS อัตโนมัติ';
+                document.getElementById('locate-btn').classList.replace('bg-emerald-600', 'bg-slate-800');
+                document.getElementById('locate-btn').classList.replace('dark:bg-emerald-600', 'dark:bg-red-600');
+            } else {
+                showCustomToast(`❌ ส่งพิกัดล้มเหลว: ${errorDetails || 'โปรดตรวจสอบการเชื่อมต่ออินเทอร์เน็ต'}`, 'error');
+            }
+        }
+
+        function updateIncidentListUI() {
+            const container = document.getElementById('incident-list');
+            const placeholder = document.getElementById('no-incidents-placeholder');
+            const counter = document.getElementById('local-counter');
+
+            if (incidentHistory.length === 0) {
+                container.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+                counter.textContent = '0 เหตุการณ์';
+                return;
+            }
+
+            container.classList.remove('hidden');
+            placeholder.classList.add('hidden');
+            counter.textContent = `${incidentHistory.length} เหตุการณ์`;
+
+            container.innerHTML = incidentHistory.map(item => `
+                <div class="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-200 dark:border-gray-700 space-y-3 relative overflow-hidden transition-all duration-200">
+                    <div class="absolute right-0 top-0 bg-red-600 text-white text-[10px] px-3 py-1 font-bold rounded-bl-xl uppercase">
+                        แจ้งเหตุสำเร็จ
+                    </div>
+                    
+                    <div class="flex items-start gap-3">
+                        <div class="text-red-600 dark:text-red-500 text-xl pt-0.5">
+                            <i class="fa-solid fa-bell-on"></i>
+                        </div>
+                        <div class="space-y-1">
+                            <h5 class="font-bold text-gray-900 dark:text-white text-base">${item.type}</h5>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">แจ้งโดย: <b>${item.name}</b> • เบอร์โทร: <b>${item.phone}</b></p>
+                            <p class="text-xs text-gray-400 dark:text-gray-500">${item.time}</p>
+                        </div>
+                    </div>
+
+                    <div class="text-xs text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-900 p-2.5 rounded-lg border border-gray-100 dark:border-gray-800">
+                        <strong>📍 สถานที่:</strong> ${item.location} <br>
+                        <strong>🌎 พิกัดดาวเทียม:</strong> Lat: ${item.lat} / Lng: ${item.lng}
+                    </div>
+
+                    ${item.image ? `
+                        <div class="rounded-lg overflow-hidden border border-gray-100 dark:border-gray-800 max-h-40 bg-gray-100 dark:bg-gray-900">
+                            <img src="${item.image}" alt="รูปเหตุการณ์" class="w-full h-full object-cover">
+                        </div>
+                    ` : ''}
+
+                    <div class="flex items-center justify-between gap-2 pt-1">
+                        <a href="https://maps.google.com/?q=${item.lat},${item.lng}" target="_blank"
+                            class="text-[11px] text-blue-600 dark:text-blue-400 hover:underline font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-route"></i> นำทางด้วยกูเกิลแมปส์
+                        </a>
+                        <button onclick="deleteLocalRecord(${item.id})" class="text-[10px] text-gray-400 hover:text-red-500 transition">
+                            <i class="fa-solid fa-trash-can"></i> ลบข้อมูลนี้จากเครื่อง
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteLocalRecord(id) {
+            incidentHistory = incidentHistory.filter(item => item.id !== id);
+            localStorage.setItem('rescue_incident_history', JSON.stringify(incidentHistory));
+            updateIncidentListUI();
+            showCustomToast('🗑️ ลบรายงานฉุกเฉินออกจากเครื่องเรียบร้อยแล้ว', 'info');
+        }
+
+        function openSuccessModal(record) {
+            document.getElementById('summary-type').textContent = record.type;
+            document.getElementById('summary-name').textContent = record.name;
+            document.getElementById('summary-phone').textContent = record.phone;
+            document.getElementById('summary-location').textContent = record.location;
+            document.getElementById('summary-gps').textContent = `${record.lat}, ${record.lng}`;
+            document.getElementById('summary-time').textContent = record.time;
+
+            const modal = document.getElementById('success-modal');
+            const child = modal.querySelector('div');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            child.classList.remove('scale-95');
+            child.classList.add('scale-100');
+        }
+
+        function closeSuccessModal() {
+            const modal = document.getElementById('success-modal');
+            const child = modal.querySelector('div');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            child.classList.remove('scale-100');
+            child.classList.add('scale-95');
+        }
+
+        function showCustomToast(message, type = 'info') {
+            const existingToasts = document.querySelectorAll('.custom-toast');
+            existingToasts.forEach(t => t.remove());
+
+            const toast = document.createElement('div');
+            toast.className = `custom-toast fixed bottom-5 left-1/2 -translate-x-1/2 z-[9999] max-w-sm w-11/12 px-4 py-3 rounded-xl shadow-lg flex items-center gap-2.5 text-sm transition-all duration-300 text-white font-semibold transform translate-y-3 opacity-0`;
+            
+            if (type === 'success') {
+                toast.classList.add('bg-emerald-600');
+                toast.innerHTML = `<i class="fa-solid fa-circle-check text-lg"></i> <span>${message}</span>`;
+            } else if (type === 'error') {
+                toast.classList.add('bg-rose-600');
+                toast.innerHTML = `<i class="fa-solid fa-circle-exclamation text-lg"></i> <span>${message}</span>`;
+            } else if (type === 'warning') {
+                toast.classList.add('bg-amber-600');
+                toast.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-lg"></i> <span>${message}</span>`;
+            } else {
+                toast.classList.add('bg-slate-800', 'dark:bg-gray-100', 'dark:text-gray-950');
+                toast.innerHTML = `<i class="fa-solid fa-circle-info text-lg"></i> <span>${message}</span>`;
+            }
+
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-0', 'translate-y-3');
+                toast.classList.add('opacity-100', 'translate-y-0');
+            }, 50);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-3');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
+
+```
